@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: Proof of Play Session Tracking Daemon
+rustchain-arcade: Proof of Play Session Tracking Daemon
 
 Monitors RetroArch process activity and generates signed session heartbeats
 that bridge gaming activity to RustChain mining attestation.
@@ -11,7 +11,7 @@ Features:
   - Generates heartbeat every 60 seconds with hardware telemetry
   - Calculates session boost multiplier (15min=1.5x, 30min+ach=2x, 60min=3x, mastery=5x)
   - Submits proof_of_play to RustChain node as attestation supplement
-  - Stores session history in ~/.sophia-edge/sessions/
+  - Stores session history in ~/.rustchain-arcade/sessions/
 """
 
 import hashlib
@@ -42,9 +42,9 @@ log = logging.getLogger("sophia-proof-of-play")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 SESSIONS_DIR = STATE_DIR / "sessions"
 CURRENT_SESSION_PATH = SESSIONS_DIR / "current_session.json"
 SESSION_HISTORY_PATH = SESSIONS_DIR / "history.jsonl"
@@ -294,7 +294,7 @@ def create_heartbeat(session: Dict, config: Dict) -> Dict:
     }
 
     # Sign the heartbeat with a simple HMAC-like hash
-    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "sophia-edge-rpi"))
+    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "rustchain-arcade-rpi"))
     sign_data = f"{heartbeat['ts']}:{heartbeat['session_id']}:{heartbeat['heartbeat_seq']}:{wallet_id}"
     heartbeat["signature"] = hashlib.sha256(sign_data.encode()).hexdigest()[:32]
 
@@ -305,7 +305,7 @@ def submit_heartbeat(heartbeat: Dict, config: Dict) -> bool:
     """Submit heartbeat to RustChain node."""
     node_url = config["rustchain"]["node_url"].rstrip("/")
     verify_ssl = config["rustchain"].get("verify_ssl", False)
-    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "sophia-edge-rpi"))
+    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "rustchain-arcade-rpi"))
 
     payload = {
         "miner": wallet_id,
@@ -333,7 +333,7 @@ def submit_proof_of_play(session: Dict, config: Dict) -> bool:
     """
     node_url = config["rustchain"]["node_url"].rstrip("/")
     verify_ssl = config["rustchain"].get("verify_ssl", False)
-    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "sophia-edge-rpi"))
+    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "rustchain-arcade-rpi"))
 
     payload = {
         "miner": wallet_id,

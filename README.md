@@ -1,4 +1,4 @@
-# Sophia Edge Node
+# RustChain Arcade
 
 **Small RTC, huge bragging rights.**
 
@@ -7,8 +7,8 @@ Mine RTC while playing retro games on your Raspberry Pi. A lightweight edge node
 ## Quick Install
 
 ```bash
-git clone https://github.com/Scottcjn/sophia-edge-node.git
-cd sophia-edge-node
+git clone https://github.com/Scottcjn/rustchain-arcade.git
+cd rustchain-arcade
 sudo ./install.sh
 ```
 
@@ -71,7 +71,7 @@ Mastering a game (100% achievements) earns bonus RTC on top of individual achiev
 
 ## Cartridge Wallet
 
-Every mastered game is immortalized as a **cartridge relic** -- a soulbound digital collectible stored in `~/.sophia-edge/cartridges/`. Each relic includes an ASCII art label:
+Every mastered game is immortalized as a **cartridge relic** -- a soulbound digital collectible stored in `~/.rustchain-arcade/cartridges/`. Each relic includes an ASCII art label:
 
 ```
     ╔════════════════════════════════╗
@@ -93,9 +93,9 @@ Every mastered game is immortalized as a **cartridge relic** -- a soulbound digi
 
 View your collection:
 ```bash
-python3 /opt/sophia-edge-node/cartridge_wallet.py --list
-python3 /opt/sophia-edge-node/cartridge_wallet.py --export > my_profile.json
-python3 /opt/sophia-edge-node/cartridge_wallet.py --crowns
+python3 /opt/rustchain-arcade/cartridge_wallet.py --list
+python3 /opt/rustchain-arcade/cartridge_wallet.py --export > my_profile.json
+python3 /opt/rustchain-arcade/cartridge_wallet.py --crowns
 ```
 
 **First Press**: If you are the first person on the entire RustChain network to master a game, your cartridge gets a special "FIRST PRESS" plaque. Like finding the gold cartridge.
@@ -109,7 +109,7 @@ python3 /opt/sophia-edge-node/cartridge_wallet.py --crowns
 Every week features a different retro platform. Play games on the featured platform to earn a 1.05x bonus on all achievements. The platform rotates through 24 classic systems.
 
 ```bash
-python3 /opt/sophia-edge-node/community_events.py --featured
+python3 /opt/rustchain-arcade/community_events.py --featured
 ```
 
 ### Cabinet Hunts
@@ -137,7 +137,7 @@ Master a game in a single unbroken session -- no saves, no quits, one sitting. T
 
 ## Configuration
 
-Edit `/opt/sophia-edge-node/config.json` or use environment variables:
+Edit `/opt/rustchain-arcade/config.json` or use environment variables:
 
 | Variable | Purpose |
 |----------|---------|

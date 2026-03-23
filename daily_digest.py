@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: Daily Gaming Summary Digest
+rustchain-arcade: Daily Gaming Summary Digest
 
-Generates a daily summary of gaming activity from ~/.sophia-edge/ state files.
+Generates a daily summary of gaming activity from ~/.rustchain-arcade/ state files.
 Compiles games played, achievements unlocked, RTC earned, session duration,
 and new cartridge relics.
 
@@ -43,9 +43,9 @@ log = logging.getLogger("sophia-digest")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 SESSIONS_DIR = STATE_DIR / "sessions"
 CARTRIDGE_DIR = STATE_DIR / "cartridges"
 EVENTS_DIR = STATE_DIR / "events"
@@ -387,7 +387,7 @@ def format_ascii_card(digest: Dict) -> str:
     lines.append(f"+{border}+")
 
     # Add signature
-    lines.append(f"|{'sophia-edge-node | rustchain.org':^{width}s}|")
+    lines.append(f"|{'rustchain-arcade | rustchain.org':^{width}s}|")
     lines.append(f"+{border}+")
 
     return "\n".join(lines)
@@ -454,7 +454,7 @@ def post_to_discord(digest: Dict, webhook_url: str) -> bool:
         "title": f"Daily Gaming Digest -- {digest['date']}",
         "color": color,
         "fields": fields,
-        "footer": {"text": "sophia-edge-node | rustchain.org"},
+        "footer": {"text": "rustchain-arcade | rustchain.org"},
         "timestamp": digest.get("generated_at", datetime.now(timezone.utc).isoformat()),
     }
 
@@ -481,7 +481,7 @@ def post_to_discord(digest: Dict, webhook_url: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def save_digest(digest: Dict, date_str: str) -> Path:
-    """Save digest as JSON and ASCII card to ~/.sophia-edge/digests/."""
+    """Save digest as JSON and ASCII card to ~/.rustchain-arcade/digests/."""
     DIGEST_DIR.mkdir(parents=True, exist_ok=True)
 
     # Save JSON
@@ -528,7 +528,7 @@ def main():
     )
     parser.add_argument(
         "--save-card", action="store_true",
-        help="Save ASCII card to ~/.sophia-edge/digests/"
+        help="Save ASCII card to ~/.rustchain-arcade/digests/"
     )
     parser.add_argument(
         "--json", action="store_true",

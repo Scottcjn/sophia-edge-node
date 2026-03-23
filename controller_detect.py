@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: Controller Authentication and Detection
+rustchain-arcade: Controller Authentication and Detection
 
 Detects connected game controllers via /dev/input/event* and
 /proc/bus/input/devices, identifies known vintage controllers by USB ID,
@@ -38,9 +38,9 @@ log = logging.getLogger("sophia-controller")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 CONTROLLER_STATE_PATH = STATE_DIR / "controller_state.json"
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: RustChain Miner for Raspberry Pi 4/5
+rustchain-arcade: RustChain Miner for Raspberry Pi 4/5
 
 Detects RPi hardware (BCM2711/BCM2712), runs fingerprint checks,
 and submits attestation to the RustChain network on a configurable interval.
@@ -43,9 +43,9 @@ log = logging.getLogger("sophia-miner")
 # Paths & defaults
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 MINER_STATE = STATE_DIR / "miner_state.json"
 
 # ---------------------------------------------------------------------------
@@ -312,7 +312,7 @@ def get_wallet_id(config: Dict) -> str:
     wallet = os.environ.get("SOPHIA_WALLET")
     if wallet:
         return wallet
-    node_id = config.get("node_id", "sophia-edge-rpi")
+    node_id = config.get("node_id", "rustchain-arcade-rpi")
     return node_id
 
 
@@ -324,7 +324,7 @@ def _read_proof_of_play_session() -> Optional[Dict]:
     """Read current proof_of_play session state from the PoP daemon.
 
     The proof_of_play.py daemon writes session state to
-    ~/.sophia-edge/sessions/current_session.json which we read here.
+    ~/.rustchain-arcade/sessions/current_session.json which we read here.
     Returns session dict if active, None otherwise.
     """
     session_file = STATE_DIR / "sessions" / "current_session.json"
@@ -422,7 +422,7 @@ async def submit_attestation(
 async def mining_loop(config: Dict) -> None:
     """Run attestation on a fixed interval."""
     interval = config.get("mining", {}).get("interval_seconds", 600)
-    node_id = config.get("node_id", "sophia-edge-rpi")
+    node_id = config.get("node_id", "rustchain-arcade-rpi")
 
     cpuinfo = read_cpuinfo()
     cpu_model, cpu_brand = detect_rpi_model(cpuinfo)
@@ -470,7 +470,7 @@ def load_config() -> Dict:
     else:
         log.warning("Config not found at %s, using defaults", cfg_path)
         config = {
-            "node_id": os.environ.get("SOPHIA_NODE_ID", "sophia-edge-rpi"),
+            "node_id": os.environ.get("SOPHIA_NODE_ID", "rustchain-arcade-rpi"),
             "rustchain": {
                 "node_url": os.environ.get("SOPHIA_NODE_URL", "https://50.28.86.131"),
                 "verify_ssl": False,

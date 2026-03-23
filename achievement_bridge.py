@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: RetroAchievements -> RTC Reward Bridge
+rustchain-arcade: RetroAchievements -> RTC Reward Bridge
 
 Polls RetroAchievements.org for recently unlocked achievements, classifies
 them by point value into reward tiers, and submits RTC reward claims to the
@@ -42,9 +42,9 @@ log = logging.getLogger("sophia-achievements")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 REPORTED_PATH = STATE_DIR / "reported.json"
 DAILY_LOG_PATH = STATE_DIR / "daily_rewards.json"
 PENDING_REWARDS_PATH = STATE_DIR / "pending_rewards.jsonl"
@@ -356,7 +356,7 @@ class RetroAchievementsClient:
         self.username = username
         self.api_key = api_key
         self.session = requests.Session()
-        self.session.headers["User-Agent"] = "sophia-edge-node/2.0"
+        self.session.headers["User-Agent"] = "rustchain-arcade/2.0"
 
     def _get(self, endpoint: str, params: Dict = None) -> Any:
         """Make authenticated GET request."""
@@ -462,7 +462,7 @@ def submit_achievement_reward(
     """
     node_url = config["rustchain"]["node_url"].rstrip("/")
     verify_ssl = config["rustchain"].get("verify_ssl", False)
-    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "sophia-edge-rpi"))
+    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "rustchain-arcade-rpi"))
 
     payload = {
         "miner": wallet_id,
@@ -509,7 +509,7 @@ def submit_mastery_bonus(
     """Submit a mastery milestone bonus claim."""
     node_url = config["rustchain"]["node_url"].rstrip("/")
     verify_ssl = config["rustchain"].get("verify_ssl", False)
-    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "sophia-edge-rpi"))
+    wallet_id = os.environ.get("SOPHIA_WALLET", config.get("node_id", "rustchain-arcade-rpi"))
 
     payload = {
         "miner": wallet_id,

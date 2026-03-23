@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: Community Events System
+rustchain-arcade: Community Events System
 
 Weekly and seasonal event system for retro gaming rewards.
 
@@ -10,7 +10,7 @@ Features:
   - Arcade Seasons: quarterly ranking by unique masteries and platform variety
   - One-Credit Club: track clean single-session clears for prestige badges
   - Fetches active events from RustChain node API (or local fallback)
-  - Stores event participation in ~/.sophia-edge/events/
+  - Stores event participation in ~/.rustchain-arcade/events/
 """
 
 import hashlib
@@ -39,9 +39,9 @@ log = logging.getLogger("sophia-community-events")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 EVENTS_DIR = STATE_DIR / "events"
 ACTIVE_EVENTS_PATH = EVENTS_DIR / "active_events.json"
 PARTICIPATION_PATH = EVENTS_DIR / "participation.json"

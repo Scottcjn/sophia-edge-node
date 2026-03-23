@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: Cartridge Wallet -- Soulbound Collectible System
+rustchain-arcade: Cartridge Wallet -- Soulbound Collectible System
 
 Each mastered game becomes a "cartridge relic" stored locally, a soulbound
 digital collectible that records your achievement. Not tradeable, not fungible --
@@ -39,7 +39,7 @@ log = logging.getLogger("sophia-cartridge-wallet")
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 CARTRIDGE_DIR = STATE_DIR / "cartridges"
 PROFILE_PATH = STATE_DIR / "memory_card.json"
 CROWNS_PATH = STATE_DIR / "system_crowns.json"

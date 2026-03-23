@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: In-Game Achievement HUD Overlay
+rustchain-arcade: In-Game Achievement HUD Overlay
 
 Lightweight overlay that shows achievement notifications while gaming on RPi.
 Detects RetroArch process, monitors achievement_bridge state for new unlocks,
 and displays a notification via SDL2 overlay or framebuffer.
 
 Fallback: writes notification text to a file RetroArch can pick up,
-and optionally plays a short chime from /opt/sophia-edge-node/sounds/.
+and optionally plays a short chime from /opt/rustchain-arcade/sounds/.
 """
 
 import ctypes
@@ -36,12 +36,12 @@ log = logging.getLogger("sophia-hud")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 HUD_STATE_PATH = STATE_DIR / "hud_state.json"
 NOTIFICATION_FILE = STATE_DIR / "hud_notification.txt"
-SOUNDS_DIR = Path("/opt/sophia-edge-node/sounds")
+SOUNDS_DIR = Path("/opt/rustchain-arcade/sounds")
 
 # RetroArch on-screen notification file (if RetroArch reads from this)
 RETROARCH_NOTIFY_PATH = Path.home() / ".config" / "retroarch" / "notification.txt"
@@ -396,7 +396,7 @@ def write_text_notification(title: str, rtc: float, tier: str,
     """Write notification to text files as fallback.
 
     Writes to:
-      1. ~/.sophia-edge/hud_notification.txt (always)
+      1. ~/.rustchain-arcade/hud_notification.txt (always)
       2. RetroArch notification path (if RetroArch config dir exists)
     """
     STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -409,7 +409,7 @@ def write_text_notification(title: str, rtc: float, tier: str,
         f"Time: {datetime.now(timezone.utc).strftime('%H:%M:%S UTC')}\n"
     )
 
-    # Write to sophia-edge state dir
+    # Write to rustchain-arcade state dir
     NOTIFICATION_FILE.write_text(notification)
     log.info("Notification written to %s", NOTIFICATION_FILE)
 

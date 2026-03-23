@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: Local + Network Leaderboard
+rustchain-arcade: Local + Network Leaderboard
 
 Track and display rankings for RTC earnings, masteries, platform variety,
 and hardcore completion rate.
 
-Local mode reads from ~/.sophia-edge/ state files.
+Local mode reads from ~/.rustchain-arcade/ state files.
 Network mode queries the RustChain API for global rankings.
 
 CLI usage:
@@ -41,9 +41,9 @@ log = logging.getLogger("sophia-leaderboard")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 SESSIONS_DIR = STATE_DIR / "sessions"
 CARTRIDGE_DIR = STATE_DIR / "cartridges"
 EVENTS_DIR = STATE_DIR / "events"
@@ -95,7 +95,7 @@ def period_label(period: str) -> str:
 # ---------------------------------------------------------------------------
 
 def collect_local_stats(period: str = "all") -> Dict:
-    """Collect local player stats from ~/.sophia-edge/ state files.
+    """Collect local player stats from ~/.rustchain-arcade/ state files.
 
     Returns a dict with all stats needed for leaderboard display.
     """
@@ -446,7 +446,7 @@ def load_config() -> Dict:
         log.warning("Config not found at %s, using defaults", cfg_path)
         return {
             "rustchain": {"node_url": "https://50.28.86.131", "verify_ssl": False},
-            "node_id": "sophia-edge-rpi",
+            "node_id": "rustchain-arcade-rpi",
         }
 
 
@@ -497,7 +497,7 @@ def main():
 
     if args.network:
         my_wallet = os.environ.get(
-            "SOPHIA_WALLET", config.get("node_id", "sophia-edge-rpi")
+            "SOPHIA_WALLET", config.get("node_id", "rustchain-arcade-rpi")
         )
         entries = fetch_network_leaderboard(
             config, sort_by=args.sort, period=args.period, limit=args.limit

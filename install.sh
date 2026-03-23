@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# sophia-edge-node installer for Raspberry Pi 4 / 5
-# Creates /opt/sophia-edge-node/, installs dependencies, sets up systemd services.
+# rustchain-arcade installer for Raspberry Pi 4 / 5
+# Creates /opt/rustchain-arcade/, installs dependencies, sets up systemd services.
 set -euo pipefail
 
-INSTALL_DIR="/opt/sophia-edge-node"
-STATE_DIR="$HOME/.sophia-edge"
+INSTALL_DIR="/opt/rustchain-arcade"
+STATE_DIR="$HOME/.rustchain-arcade"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -179,7 +179,7 @@ setup_venv() {
 # ---------------------------------------------------------------------------
 
 install_files() {
-    info "Installing sophia-edge-node to $INSTALL_DIR ..."
+    info "Installing rustchain-arcade to $INSTALL_DIR ..."
     mkdir -p "$INSTALL_DIR"
 
     local script_dir
@@ -238,7 +238,7 @@ configure() {
     echo ""
 
     # Node ID
-    local default_node_id="sophia-edge-$(hostname -s)"
+    local default_node_id="rustchain-arcade-$(hostname -s)"
     read -rp "Node ID [$default_node_id]: " node_id
     node_id="${node_id:-$default_node_id}"
 
@@ -294,7 +294,7 @@ install_services() {
     # Miner service
     cat > /etc/systemd/system/sophia-miner.service <<EOF
 [Unit]
-Description=Sophia Edge Node - RustChain Miner
+Description=RustChain Arcade - RustChain Miner
 After=network-online.target
 Wants=network-online.target
 
@@ -314,7 +314,7 @@ EOF
     # Achievement bridge service
     cat > /etc/systemd/system/sophia-achievements.service <<EOF
 [Unit]
-Description=Sophia Edge Node - RetroAchievements Bridge
+Description=RustChain Arcade - RetroAchievements Bridge
 After=network-online.target
 Wants=network-online.target
 
@@ -334,7 +334,7 @@ EOF
     # Proof of Play session tracker service
     cat > /etc/systemd/system/sophia-proof-of-play.service <<EOF
 [Unit]
-Description=Sophia Edge Node - Proof of Play Session Tracker
+Description=RustChain Arcade - Proof of Play Session Tracker
 After=network-online.target
 Wants=network-online.target
 
@@ -354,7 +354,7 @@ EOF
     # HUD overlay service
     cat > /etc/systemd/system/sophia-hud.service <<EOF
 [Unit]
-Description=Sophia Edge Node - Achievement HUD Overlay
+Description=RustChain Arcade - Achievement HUD Overlay
 After=network-online.target
 Wants=network-online.target
 
@@ -374,7 +374,7 @@ EOF
     # Daily digest timer and service
     cat > /etc/systemd/system/sophia-digest.service <<EOF
 [Unit]
-Description=Sophia Edge Node - Daily Gaming Digest
+Description=RustChain Arcade - Daily Gaming Digest
 After=network-online.target
 
 [Service]
@@ -387,7 +387,7 @@ EOF
 
     cat > /etc/systemd/system/sophia-digest.timer <<EOF
 [Unit]
-Description=Sophia Edge Node - Daily Digest Timer (midnight UTC)
+Description=RustChain Arcade - Daily Digest Timer (midnight UTC)
 
 [Timer]
 OnCalendar=*-*-* 00:05:00 UTC
@@ -510,7 +510,7 @@ show_summary() {
 main() {
     echo ""
     echo "  ╔═══════════════════════════════════════╗"
-    echo "  ║  Sophia Edge Node Installer           ║"
+    echo "  ║  RustChain Arcade Installer           ║"
     echo "  ║  Mine RTC + Earn Retro Game Rewards   ║"
     echo "  ║  Small RTC, huge bragging rights.     ║"
     echo "  ╚═══════════════════════════════════════╝"

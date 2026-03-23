@@ -2,7 +2,7 @@
 
 ## RetroAchievements.org Integration
 
-sophia-edge-node connects to [RetroAchievements.org](https://retroachievements.org) — a community-driven achievement platform for retro games. RA supports 40+ systems with over 400,000 achievements across 30,000+ games.
+rustchain-arcade connects to [RetroAchievements.org](https://retroachievements.org) — a community-driven achievement platform for retro games. RA supports 40+ systems with over 400,000 achievements across 30,000+ games.
 
 ### Supported Platforms
 
@@ -30,7 +30,7 @@ sophia-edge-node connects to [RetroAchievements.org](https://retroachievements.o
 2. Create a free account at retroachievements.org
 3. Enable achievements in RetroArch settings
 4. Play games — achievements unlock automatically
-5. sophia-edge-node polls RA API for your unlocks
+5. rustchain-arcade polls RA API for your unlocks
 6. RTC rewards are calculated and submitted
 
 ### Hardcore Mode
@@ -39,7 +39,7 @@ RetroAchievements has two modes:
 - **Softcore**: Save states, rewind, cheats allowed. Standard rewards.
 - **Hardcore**: No save states, no rewind, no cheats. **2x RTC multiplier.**
 
-sophia-edge-node only counts **Hardcore** achievements by default. This prevents save-scumming for rewards.
+rustchain-arcade only counts **Hardcore** achievements by default. This prevents save-scumming for rewards.
 
 ## Reward Economics
 

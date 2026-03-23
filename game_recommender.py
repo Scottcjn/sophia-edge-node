@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sophia-edge-node: Achievement-Optimized Game Recommender
+rustchain-arcade: Achievement-Optimized Game Recommender
 
 Recommends games based on potential RTC earnings from RetroAchievements.
 Factors in achievement count, rarity, hardcore completion rates, and
@@ -39,9 +39,9 @@ log = logging.getLogger("sophia-recommender")
 # Paths
 # ---------------------------------------------------------------------------
 CONFIG_PATH = os.environ.get(
-    "SOPHIA_CONFIG", "/opt/sophia-edge-node/config.json"
+    "SOPHIA_CONFIG", "/opt/rustchain-arcade/config.json"
 )
-STATE_DIR = Path.home() / ".sophia-edge"
+STATE_DIR = Path.home() / ".rustchain-arcade"
 CARTRIDGE_DIR = STATE_DIR / "cartridges"
 RECOMMENDER_CACHE = STATE_DIR / "recommender_cache.json"
 
@@ -118,7 +118,7 @@ class RAClient:
         self.username = username
         self.api_key = api_key
         self.session = requests.Session()
-        self.session.headers["User-Agent"] = "sophia-edge-node/2.0"
+        self.session.headers["User-Agent"] = "rustchain-arcade/2.0"
 
     def _get(self, endpoint: str, params: Dict = None) -> Optional[Dict]:
         """Make authenticated GET request to RA API."""
