@@ -127,6 +127,85 @@ Quarterly rankings by unique masteries and platform variety. The more different 
 
 Master a game in a single unbroken session -- no saves, no quits, one sitting. The ultimate prestige badge for speedrunners and hardcore players.
 
+## N64 Legend of Elya
+
+[Legend of Elya](https://github.com/Scottcjn/legend-of-elya-n64) is the world's first LLM-powered N64 game -- a homebrew RPG with AI NPCs that generate dialog in real-time on the N64's VR4300 MIPS CPU. The N64 achievement bridge monitors the game's RDRAM state via RetroArch's Network Command Interface and awards RTC for in-game accomplishments.
+
+### N64 Achievements
+
+| Achievement | RTC | How to unlock |
+|-------------|-----|---------------|
+| First Contact | 1.0 | Talk to Sophia Elya for the first time |
+| Scholar's Path | 0.5 | Visit the Arcane Library |
+| Forge Born | 0.5 | Visit the Ember Forge |
+| Explorer | 2.0 | Visit all 3 rooms in one session |
+| Custom Prompt | 1.5 | Use the virtual keyboard to type a custom prompt |
+| Polyglot | 3.0 | Talk to all 3 NPCs in one session |
+| Deep Thinker | 1.0 | Generate 100+ tokens total |
+| Philosopher | 2.0 | Generate 500+ tokens total |
+| The Sage's Apprentice | 5.0 | Complete 10 dialogs with Sophia |
+| Master of Elya | 10.0 | All other achievements unlocked (soulbound relic) |
+
+**Total possible: 26.5 RTC** (before multipliers).
+
+### N64 Antiquity Multiplier
+
+| Mode | Multiplier | Total RTC |
+|------|-----------|-----------|
+| Emulated (RetroArch on RPi/PC) | 1.5x | 39.75 |
+| Real N64 (EverDrive + bridge) | 3.0x | 79.5 |
+
+Session boost multipliers stack on top of antiquity.
+
+### Running the N64 Bridge
+
+```bash
+# Start RetroArch with network commands enabled
+retroarch -L mupen64plus_next_libretro.so legend_of_elya.z64 --cmd-port 55355
+
+# In another terminal, start the bridge
+python3 n64_elya_bridge.py
+
+# Real N64 hardware mode (3.0x antiquity)
+python3 n64_elya_bridge.py --real-n64
+
+# Preview without submitting RTC
+python3 n64_elya_bridge.py --dry-run
+
+# Specify GameCtx memory address manually
+python3 n64_elya_bridge.py --addr 0x100000
+
+# List all achievements
+python3 n64_elya_bridge.py --list-achievements
+
+# Check progress
+python3 n64_elya_bridge.py --status
+```
+
+The bridge auto-detects the GameCtx struct in RDRAM by scanning for valid state patterns. If auto-detection fails, find the address with `nm legend_of_elya.elf | grep ' G$'` and pass it via `--addr`.
+
+### How It Works
+
+1. RetroArch loads Legend of Elya ROM with an N64 core (mupen64plus-next or parallel-n64)
+2. The bridge connects to RetroArch's UDP command interface on port 55355
+3. Every 250ms, it reads the GameCtx struct from N64 RDRAM using `READ_CORE_RAM`
+4. It tracks room visits, NPC conversations, keyboard usage, and token generation
+5. When an achievement condition is met, it submits an RTC reward claim to the RustChain node
+6. The Proof of Play daemon tracks session duration for boost multipliers
+7. "Master of Elya" mints a soulbound Cartridge Relic with N64/LLM/HOMEBREW badges
+
+### RetroArch Network Commands Setup
+
+Enable network commands in RetroArch:
+- **Settings > Network > Network Commands**: On
+- **Settings > Network > Network Command Port**: 55355
+
+Or add to `retroarch.cfg`:
+```
+network_cmd_enable = "true"
+network_cmd_port = "55355"
+```
+
 ## Anti-Cheat
 
 - **Hardcore only**: By default, only RetroAchievements hardcore mode achievements earn RTC (no save states, no cheats)
