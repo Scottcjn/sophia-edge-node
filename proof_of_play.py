@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """
 rustchain-arcade: Proof of Play Session Tracking Daemon
 

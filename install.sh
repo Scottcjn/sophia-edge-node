@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
 # rustchain-arcade installer for Raspberry Pi 4 / 5
 # Creates /opt/rustchain-arcade/, installs dependencies, sets up systemd services.
 set -euo pipefail
