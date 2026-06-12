@@ -52,6 +52,7 @@ PENDING_REWARDS_PATH = STATE_DIR / "pending_rewards.jsonl"
 VELOCITY_PATH = STATE_DIR / "velocity_tracker.json"
 TIER_THROTTLE_PATH = STATE_DIR / "tier_throttle.json"
 VICTORY_LAP_PATH = STATE_DIR / "victory_lap.json"
+IDENTITY_PATH = STATE_DIR / "player_identity.json"
 CARTRIDGE_DIR = STATE_DIR / "cartridges"
 
 # ---------------------------------------------------------------------------
@@ -360,9 +361,12 @@ class RetroAchievementsClient:
         self.session.headers["User-Agent"] = "rustchain-arcade/2.0"
 
     def _get(self, endpoint: str, params: Dict = None) -> Any:
-        """Make authenticated GET request."""
+        """Make authenticated GET request.
+
+        The web API authenticates with the y= API key alone; the old z=
+        username parameter is legacy and no longer sent.
+        """
         params = params or {}
-        params["z"] = self.username
         params["y"] = self.api_key
         url = f"{self.api_url}/{endpoint}"
 
@@ -377,7 +381,7 @@ class RetroAchievementsClient:
     def get_recent_achievements(self, minutes: int = 60) -> Optional[List[Dict]]:
         """Fetch user's recently unlocked achievements.
 
-        GET /API_GetUserRecentAchievements.php?z={}&y={}&u={}&m={}
+        GET /API_GetUserRecentAchievements.php?y={}&u={}&m={}
         """
         data = self._get(
             "API_GetUserRecentAchievements.php",
@@ -390,7 +394,7 @@ class RetroAchievementsClient:
     def get_game_progress(self, game_id: int) -> Optional[Dict]:
         """Fetch game info and user progress for mastery check.
 
-        GET /API_GetGameInfoAndUserProgress.php?z={}&y={}&u={}&g={}
+        GET /API_GetGameInfoAndUserProgress.php?y={}&u={}&g={}
         """
         return self._get(
             "API_GetGameInfoAndUserProgress.php",
@@ -437,9 +441,88 @@ class RetroAchievementsClient:
     def get_game_info(self, game_id: int) -> Optional[Dict]:
         """Fetch basic game info.
 
-        GET /API_GetGame.php?z={}&y={}&i={}
+        GET /API_GetGame.php?y={}&i={}
         """
         return self._get("API_GetGame.php", {"i": game_id})
+
+    def get_user_profile(self, username: str = None) -> Optional[Dict]:
+        """Fetch a user's profile, including their permanent ULID.
+
+        GET /API_GetUserProfile.php?y={}&u={}
+        """
+        return self._get(
+            "API_GetUserProfile.php",
+            {"u": username or self.username},
+        )
+
+
+# ---------------------------------------------------------------------------
+# Player identity (ULID binding)
+# ---------------------------------------------------------------------------
+
+# Set by verify_player_identity() each poll; read by the submit functions
+# so every reward claim carries the permanent player identity.
+_CURRENT_PLAYER = {"ulid": "", "username": ""}
+
+
+def verify_player_identity(client: "RetroAchievementsClient") -> Optional[str]:
+    """Resolve and pin the player's permanent RetroAchievements ULID.
+
+    RA usernames are mutable (renames are supported, and freed names can
+    be re-registered by someone else), so wallet binding must hang off the
+    permanent ULID instead. On first run the username->ULID binding is
+    persisted; afterwards, if the configured username ever resolves to a
+    DIFFERENT ULID, rewards stop until a human re-binds.
+
+    Returns the ULID, or None if identity could not be verified (no
+    rewards should be paid this round).
+    """
+    profile = client.get_user_profile()
+    if not profile or not profile.get("ULID"):
+        log.warning("Could not resolve player ULID for '%s'; "
+                    "skipping rewards this round.", client.username)
+        return None
+    ulid = str(profile["ULID"])
+
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    stored = {}
+    if IDENTITY_PATH.exists():
+        try:
+            stored = json.loads(IDENTITY_PATH.read_text())
+        except (OSError, json.JSONDecodeError):
+            stored = {}
+
+    stored_ulid = stored.get("ulid", "")
+    if stored_ulid and stored_ulid != ulid:
+        log.error(
+            "IDENTITY MISMATCH: username '%s' now resolves to ULID %s, but "
+            "rewards are bound to ULID %s (bound %s). Refusing to pay -- "
+            "this is what a recycled/re-registered username looks like. "
+            "If the change is legitimate, delete %s to re-bind.",
+            client.username, ulid, stored_ulid,
+            stored.get("bound_at", "unknown"), IDENTITY_PATH,
+        )
+        return None
+
+    if not stored_ulid:
+        stored = {
+            "ulid": ulid,
+            "username": client.username,
+            "bound_at": datetime.now(timezone.utc).isoformat(),
+        }
+        IDENTITY_PATH.write_text(json.dumps(stored, indent=2))
+        log.info("Player identity bound: '%s' -> ULID %s",
+                 client.username, ulid)
+    elif stored.get("username") != client.username:
+        # Same ULID, new name: a legitimate rename. Track it.
+        log.info("Player renamed '%s' -> '%s' (same ULID %s); updating.",
+                 stored.get("username"), client.username, ulid)
+        stored["username"] = client.username
+        IDENTITY_PATH.write_text(json.dumps(stored, indent=2))
+
+    _CURRENT_PLAYER["ulid"] = ulid
+    _CURRENT_PLAYER["username"] = client.username
+    return ulid
 
 
 # ---------------------------------------------------------------------------
@@ -468,6 +551,8 @@ def submit_achievement_reward(
     payload = {
         "miner": wallet_id,
         "source": "retroachievements",
+        "player_ulid": _CURRENT_PLAYER["ulid"],
+        "player_username": _CURRENT_PLAYER["username"],
         "achievement_id": str(achievement.get("AchievementID", achievement.get("ID", ""))),
         "game_id": str(achievement.get("GameID", "")),
         "game_title": achievement.get("GameTitle", ""),
@@ -515,6 +600,8 @@ def submit_mastery_bonus(
     payload = {
         "miner": wallet_id,
         "source": "retroachievements",
+        "player_ulid": _CURRENT_PLAYER["ulid"],
+        "player_username": _CURRENT_PLAYER["username"],
         "type": "mastery_bonus",
         "milestone": milestone_type,
         "game_id": str(game_id),
@@ -756,6 +843,11 @@ def process_achievements(config: Dict) -> None:
         username=username,
         api_key=api_key,
     )
+
+    # Bind rewards to the permanent RA ULID, not the mutable username.
+    # On mismatch (recycled username), no rewards are paid.
+    if verify_player_identity(client) is None:
+        return
 
     # Try submitting any pending offline rewards first
     submit_pending_rewards(config)
