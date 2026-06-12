@@ -13,7 +13,7 @@
   "achievements": {
     "enabled": true,
     "poll_interval_seconds": 300,
-    "daily_cap_rtc": 0.05,
+    "daily_cap_rtc": 0.10,
     "retroachievements": {
       "api_url": "https://retroachievements.org/API",
       "username": "",

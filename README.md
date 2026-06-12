@@ -215,6 +215,7 @@ network_cmd_port = "55355"
 - **Tier throttling**: After 8 common/uncommon achievements in one game per day, those tiers pay half
 - **Hardware fingerprint**: Clock drift, thermal analysis, and VM detection ensure real Raspberry Pi hardware
 - **Session heartbeats**: Proof of Play generates signed heartbeats every 60 seconds to verify actual gaming sessions
+- **ULID identity binding**: Rewards are pinned to the player's permanent RetroAchievements ULID, not the mutable username. If the configured username ever resolves to a different ULID (a recycled or re-registered name), payouts stop until a human re-binds — every reward claim carries `player_ulid` for auditability
 
 ## Configuration
 

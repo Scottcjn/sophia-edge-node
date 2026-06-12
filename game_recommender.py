@@ -122,9 +122,12 @@ class RAClient:
         self.session.headers["User-Agent"] = "rustchain-arcade/2.0"
 
     def _get(self, endpoint: str, params: Dict = None) -> Optional[Dict]:
-        """Make authenticated GET request to RA API."""
+        """Make authenticated GET request to RA API.
+
+        The web API authenticates with the y= API key alone; the old z=
+        username parameter is legacy and no longer sent.
+        """
         params = params or {}
-        params["z"] = self.username
         params["y"] = self.api_key
         url = f"{self.api_url}/{endpoint}"
 
@@ -139,7 +142,7 @@ class RAClient:
     def get_console_games(self, console_id: int) -> Optional[List[Dict]]:
         """Fetch game list for a console.
 
-        GET /API_GetGameList.php?z={}&y={}&i={console_id}&h=1&f=1
+        GET /API_GetGameList.php?y={}&i={console_id}&h=1&f=1
         h=1: include hashes, f=1: only with achievements
         """
         data = self._get("API_GetGameList.php", {
@@ -154,7 +157,7 @@ class RAClient:
     def get_game_info_and_progress(self, game_id: int) -> Optional[Dict]:
         """Fetch detailed game info with user progress.
 
-        GET /API_GetGameInfoAndUserProgress.php?z={}&y={}&u={}&g={game_id}
+        GET /API_GetGameInfoAndUserProgress.php?y={}&u={}&g={game_id}
         """
         return self._get("API_GetGameInfoAndUserProgress.php", {
             "u": self.username,
@@ -164,7 +167,7 @@ class RAClient:
     def get_user_completed_games(self) -> Optional[List[Dict]]:
         """Fetch user's completed/mastered games.
 
-        GET /API_GetUserCompletedGames.php?z={}&y={}&u={}
+        GET /API_GetUserCompletedGames.php?y={}&u={}
         """
         data = self._get("API_GetUserCompletedGames.php", {
             "u": self.username,
@@ -176,7 +179,7 @@ class RAClient:
     def get_user_recently_played(self, count: int = 50) -> Optional[List[Dict]]:
         """Fetch user's recently played games.
 
-        GET /API_GetUserRecentlyPlayedGames.php?z={}&y={}&u={}&c={}
+        GET /API_GetUserRecentlyPlayedGames.php?y={}&u={}&c={}
         """
         data = self._get("API_GetUserRecentlyPlayedGames.php", {
             "u": self.username,
