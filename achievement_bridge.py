@@ -860,7 +860,10 @@ def process_achievements(config: Dict) -> None:
 
     remaining = wallet_cap - daily_spent
 
-    # Check achievement velocity anti-cheat
+    # Check achievement velocity anti-cheat. The count is carried into the
+    # reward loop below and kept up to date there: a single poll can carry an
+    # hour's worth of unlocks, so the limit has to hold inside the batch too,
+    # not just between polls.
     velocity_ok, velocity_count = check_achievement_velocity(max_per_hour)
     if not velocity_ok:
         log.warning("ANTI-CHEAT: Achievement velocity too high (%d/hr, max %d). Pausing rewards.",
@@ -912,6 +915,15 @@ def process_achievements(config: Dict) -> None:
             reported_ids.add(ach_id)
             new_reported = True
             continue
+
+        # Anti-cheat: hourly unlock limit, enforced per achievement. Unlocks
+        # over the limit are left unreported rather than marked paid, so a
+        # later poll can still pick them up once the hour has rolled over.
+        if velocity_count >= max_per_hour:
+            log.warning("ANTI-CHEAT: hourly limit reached (%d/hr, max %d). "
+                        "Stopping rewards for this cycle.",
+                        velocity_count, max_per_hour)
+            break
 
         tier_name, base_rtc = classify_achievement(points, tiers)
         if tier_name is None:
@@ -976,6 +988,7 @@ def process_achievements(config: Dict) -> None:
 
         # Record for velocity tracking
         record_achievement_timestamp()
+        velocity_count += 1
 
         # Record tier throttle
         increment_tier_throttle(game_id, tier_name)
