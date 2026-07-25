@@ -305,11 +305,37 @@ def get_rarity_factor(unlock_pct: float, rarity_config: Dict) -> float:
 # Proof of Play session boost lookup
 # ---------------------------------------------------------------------------
 
-def get_session_boost(config: Dict) -> float:
+def playtime_session_boost(session: Dict, config: Dict) -> float:
+    """Return the play-time tier of a session, with the Victory Lap excluded.
+
+    proof_of_play.calculate_boost_multiplier() short-circuits on mastery and
+    reports the Victory Lap tier as the whole session boost, which hides the
+    play-time tier underneath it. While a lap is pending we still need that
+    tier, so it is recomputed here from the session's own duration and
+    achievement count using the same config table.
+    """
+    boost_cfg = config.get("proof_of_play", {}).get("session_boost_multipliers", {})
+    duration_min = session.get("duration_minutes", 0.0) or 0.0
+    achievements = session.get("achievements_earned", 0) or 0
+
+    if duration_min >= 60.0:
+        return boost_cfg.get("60min", 3.0)
+    if duration_min >= 30.0 and achievements >= 1:
+        return boost_cfg.get("30min_with_achievement", 2.0)
+    if duration_min >= 15.0:
+        return boost_cfg.get("15min", 1.5)
+    return 1.0
+
+
+def get_session_boost(config: Dict, include_victory_lap: bool = True) -> float:
     """Read current session boost from proof_of_play state file.
 
     The proof_of_play.py daemon writes session state that we read.
     Returns the boost multiplier (1.0 if no active session).
+
+    With include_victory_lap=False the mastery tier is stripped back to the
+    play-time tier, so a caller that pays the Victory Lap itself does not pay
+    it a second time through the session boost.
     """
     session_file = STATE_DIR / "sessions" / "current_session.json"
     if not session_file.exists():
@@ -322,6 +348,9 @@ def get_session_boost(config: Dict) -> float:
 
     if not session.get("active", False):
         return 1.0
+
+    if not include_victory_lap:
+        return playtime_session_boost(session, config)
 
     return session.get("boost_multiplier", 1.0)
 
@@ -870,16 +899,19 @@ def process_achievements(config: Dict) -> None:
                      velocity_count, max_per_hour)
         return
 
-    # Get session boost from proof_of_play daemon
-    session_boost = get_session_boost(config)
-    if session_boost > 1.0:
-        log.info("Proof of Play session boost active: %.1fx", session_boost)
-
     # Get victory lap multiplier
     victory_lap_mult = get_victory_lap_multiplier()
     victory_lap_active = victory_lap_mult > 1.0
     if victory_lap_active:
         log.info("VICTORY LAP active! %.1fx multiplier this epoch.", victory_lap_mult)
+
+    # Get session boost from proof_of_play daemon. The Victory Lap is the top
+    # row of that same boost table, so while a lap is pending the daemon
+    # already reports 5.0x here -- ask for the play-time tier instead and pay
+    # the lap once, below.
+    session_boost = get_session_boost(config, include_victory_lap=not victory_lap_active)
+    if session_boost > 1.0:
+        log.info("Proof of Play session boost active: %.1fx", session_boost)
 
     # Fetch recent achievements (last 60 minutes)
     achievements = client.get_recent_achievements(minutes=60)
@@ -950,14 +982,11 @@ def process_achievements(config: Dict) -> None:
         throttle_mult = check_tier_throttle(game_id, tier_name, throttle_limit)
         rtc_amount *= throttle_mult
 
-        # Session boost from proof of play
-        rtc_amount *= session_boost
-
-        # Victory lap boost
-        if victory_lap_active:
-            rtc_amount *= victory_lap_mult
-            # Consume the victory lap after first use
-            consume_victory_lap()
+        # Session boost from proof of play. The Victory Lap replaces the
+        # play-time tier (same table) instead of stacking on top of it.
+        lap_applied = victory_lap_active
+        boost = max(session_boost, victory_lap_mult) if lap_applied else session_boost
+        rtc_amount *= boost
 
         # Enforce daily cap
         if rtc_amount > remaining:
@@ -971,8 +1000,8 @@ def process_achievements(config: Dict) -> None:
         mode_str = " [HARDCORE]" if is_hardcore else ""
         throttle_str = " [THROTTLED 50%]" if throttle_mult < 1.0 else ""
         rarity_str = f" [rarity:{unlock_pct:.1f}% x{rarity_factor:.2f}]"
-        boost_str = f" [boost:x{session_boost:.1f}]" if session_boost > 1.0 else ""
-        vlap_str = " [VICTORY LAP]" if victory_lap_active else ""
+        boost_str = f" [boost:x{boost:.1f}]" if boost > 1.0 else ""
+        vlap_str = " [VICTORY LAP]" if lap_applied else ""
         log.info("  [%s] %s - %d pts - %s%s%s%s%s%s - %.5f RTC",
                  game_title, ach.get("Title", ""), points, tier_name,
                  mode_str, rarity_str, throttle_str, boost_str, vlap_str, rtc_amount)
@@ -980,11 +1009,20 @@ def process_achievements(config: Dict) -> None:
         submit_achievement_reward(
             config, ach, tier_name, rtc_amount, is_hardcore,
             rarity_factor=rarity_factor,
-            session_boost=session_boost,
-            victory_lap_active=victory_lap_active,
+            session_boost=boost,
+            victory_lap_active=lap_applied,
         )
         add_daily_spent(rtc_amount)
         remaining -= rtc_amount
+
+        # Consume the victory lap after first use -- it is a one-shot bonus, so
+        # the rest of this batch falls back to the play-time tier. Consumed
+        # here, after the reward is actually paid, so a lap is not burned by an
+        # achievement the daily cap turned away.
+        if lap_applied:
+            consume_victory_lap()
+            victory_lap_active = False
+            victory_lap_mult = 1.0
 
         # Record for velocity tracking
         record_achievement_timestamp()
